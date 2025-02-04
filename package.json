@@ -51,6 +51,8 @@
     "@adonisjs/core": "^6.17.0",
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.5.1",
+    "@adonisjs/transmit": "^2.0.2",
+    "@adonisjs/transmit-client": "^1.0.0",
     "@vinejs/vine": "^3.0.0",
     "better-sqlite3": "^11.8.1",
     "luxon": "^3.4.4",
