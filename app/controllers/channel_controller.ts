@@ -5,9 +5,13 @@ import UserChannel from "#models/user_channel";
 
 export default class ChannelController {
   async index({ auth, response }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = await auth.getUserOrFail();
 
-    const userChannels = await UserChannel.query().where('userId', user.id);
+    // Récupérer les channels auxquels l'utilisateur est associé
+    const userChannels = await UserChannel.query()
+      .where('userId', user.id)
+      .select('channelId');
+
     const channelIds = userChannels.map(uc => uc.channelId);
 
     // Récupérer uniquement les channels correspondants
