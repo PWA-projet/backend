@@ -32,7 +32,7 @@ export default class ChannelController {
       channelId: channel.id,
     })
 
-    return response.created(channel)
+    return response.ok({ message: "Vous avez créer le channel avec succès" });
   }
 
   async show({ auth, params, response }: HttpContext) {
