@@ -26,6 +26,7 @@ router
   .group(() => {
     router.get('/', [ChannelController, 'index']).use(middleware.auth())
     router.post('/', [ChannelController, 'create']).use(middleware.auth())
+    router.get('/:id', [ChannelController, 'show']).use(middleware.auth());
     router.post('/join', [ChannelController, 'join']).use(middleware.auth())
   })
   .prefix('channel')

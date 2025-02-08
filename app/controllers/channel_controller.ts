@@ -35,6 +35,29 @@ export default class ChannelController {
     return response.created(channel)
   }
 
+  async show({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { id } = params;
+
+    // Vérifier si l'utilisateur est bien membre du channel
+    const userChannel = await UserChannel.query()
+      .where('userId', user.id)
+      .where('channelId', id)
+      .first();
+
+    if (!userChannel) {
+      return response.forbidden({ message: "Vous n'êtes pas membre de ce channel" });
+    }
+
+    // Récupérer le channel
+    const channel = await Channel.find(id);
+    if (!channel) {
+      return response.notFound({ message: "Channel introuvable" });
+    }
+
+    return response.ok(channel);
+  }
+
   async join({ auth, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const { key } = request.only(['key']);
