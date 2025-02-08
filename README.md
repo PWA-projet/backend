@@ -61,6 +61,20 @@ Pre/Post Deployment Commands
 node build/ace migration:run --force
 ```
 
+## Migration
+
+Create new migration
+
+```bash
+node ace make:migration NomDeTaTable
+```
+
+Run the migrations
+
+```bash
+node ace migration:run
+```
+
 ## Deploy to docker
 
 1. Build the image
