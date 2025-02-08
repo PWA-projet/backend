@@ -29,9 +29,17 @@ export default class Channel extends BaseModel {
   })
   declare users: relations.ManyToMany<typeof User>
 
-  // Hook pour générer une clé avant la création du channel
   @beforeCreate()
   static async generateKey(channel: Channel) {
-    channel.key = randomBytes(3).toString('hex').toUpperCase()
+    let key: string
+    let exists: boolean
+
+    // Boucle pour générer une clé unique
+    do {
+      key = randomBytes(3).toString('hex').toUpperCase()  // Générer une clé aléatoire de 6 caractères
+      exists = !!(await Channel.query().where('key', key).first())  // Vérifier si la clé existe déjà
+    } while (exists)  // Si la clé existe, générer une nouvelle clé
+
+    channel.key = key
   }
 }
