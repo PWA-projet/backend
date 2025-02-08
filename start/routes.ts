@@ -3,6 +3,7 @@ import { middleware } from './kernel.js'
 
 const AuthController = () => import('#controllers/auth_controller')
 const ChannelController = () => import('#controllers/channel_controller')
+const MessageController = () => import('#controllers/message_controller')
 
 router
   .group(() => {
@@ -24,11 +25,21 @@ router
 
 router
   .group(() => {
-    router.get('/', [ChannelController, 'index']).use(middleware.auth())
-    router.post('/', [ChannelController, 'create']).use(middleware.auth())
-    router.get('/:id', [ChannelController, 'show']).use(middleware.auth());
-    router.post('/join', [ChannelController, 'join']).use(middleware.auth())
+    router.get('/', [ChannelController, 'index'])
+    router.post('/', [ChannelController, 'create'])
+    router.get('/:id', [ChannelController, 'show'])
+    router.post('/join', [ChannelController, 'join'])
   })
+  .use(middleware.auth())
   .prefix('channel')
+
+router
+  .group(() => {
+    router.get('/', [MessageController, 'index'])
+    router.post('/', [MessageController, 'store'])
+
+  })
+  .use(middleware.auth())
+  .prefix('message')
 
 
