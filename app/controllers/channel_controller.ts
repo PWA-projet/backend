@@ -5,7 +5,7 @@ import UserChannel from "#models/user_channel";
 
 export default class ChannelController {
   async index({ auth, response }: HttpContext) {
-    const user = await auth.getUserOrFail();
+    const user = auth.getUserOrFail()
 
     // Récupérer les channels auxquels l'utilisateur est associé
     const userChannels = await UserChannel.query()
