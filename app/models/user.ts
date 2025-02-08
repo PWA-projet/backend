@@ -32,7 +32,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare updatedAt: DateTime | null
 
   @manyToMany(() => Channel, {
-    pivotTable: 'users_channels',
+    pivotTable: 'user_channels',
   })
   declare channels: relations.ManyToMany<typeof Channel>
 

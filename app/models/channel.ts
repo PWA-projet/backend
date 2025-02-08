@@ -25,7 +25,7 @@ export default class Channel extends BaseModel {
   declare messages: relations.HasMany<typeof Message>
 
   @manyToMany(() => User, {
-    pivotTable: 'users_channels',
+    pivotTable: 'user_channels',
   })
   declare users: relations.ManyToMany<typeof User>
 
