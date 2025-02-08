@@ -13,6 +13,9 @@ export default class Message extends BaseModel {
   @column()
   declare channelId: number
 
+  @column()
+  declare authorId: number
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

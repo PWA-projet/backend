@@ -46,6 +46,7 @@ export default class MessageController {
     const message = await Message.create({
       content,
       channelId,
+      authorId: user.id,
     });
 
     return response.created(message);
