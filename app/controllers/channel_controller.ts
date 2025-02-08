@@ -4,19 +4,60 @@ import { createValidator } from "#validators/channel";
 import UserChannel from "#models/user_channel";
 
 export default class ChannelController {
+  async index({ auth, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+
+    const userChannels = await UserChannel.query().where('userId', user.id);
+    const channelIds = userChannels.map(uc => uc.channelId);
+
+    // Récupérer uniquement les channels correspondants
+    const channels = await Channel.query().whereIn('id', channelIds);
+
+    return response.ok(channels);
+  }
+
   async create({ auth, request, response }: HttpContext) {
-    const payload = await request.validateUsing(createValidator);
-    const user = auth.getUserOrFail();
+    const payload = await request.validateUsing(createValidator)
+    const user = auth.getUserOrFail()
 
-    const channel = await Channel.create(payload);
+    const channel = await Channel.create(payload)
 
-    // Ajouter l'utilisateur dans la table pivot 'users_channels'
+    // Ajouter l'utilisateur dans la table pivot 'user_channels'
     await UserChannel.create({
       userId: user.id,
-      channelId: channel.id
+      channelId: channel.id,
+    })
+
+    return response.created(channel)
+  }
+
+  async join({ auth, request, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const { key } = request.only(['key']);
+
+    // Vérifier si un channel existe avec cette clé
+    const channel = await Channel.findBy('key', key);
+    if (!channel) {
+      return response.notFound({ message: "Channel introuvable avec cette clé" });
+    }
+
+    // Vérifier si l'utilisateur est déjà dans le channel
+    const existingEntry = await UserChannel.query()
+      .where('userId', user.id)
+      .where('channelId', channel.id)
+      .first();
+
+    if (existingEntry) {
+      return response.badRequest({ message: "Vous êtes déjà membre de ce channel" });
+    }
+
+    // Ajouter l'utilisateur au channel
+    await UserChannel.create({
+      userId: user.id,
+      channelId: channel.id,
     });
 
-    return response.created(channel);
+    return response.ok({ message: "Vous avez rejoint le channel avec succès", channel });
   }
 }
 
