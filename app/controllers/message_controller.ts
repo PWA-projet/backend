@@ -23,6 +23,7 @@ export default class MessageController {
     const messages = await Message.query()
       .where("channelId", channelId)
       .preload('author', (query) => query.select('id', 'name'))
+      .orderBy('createdAt', 'asc');
 
     return response.ok(messages);
   }
