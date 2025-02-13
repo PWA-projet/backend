@@ -19,8 +19,10 @@ export default class MessageController {
       return response.forbidden({ message: "Vous n'avez pas accès à ce channel" });
     }
 
-    // Récupérer tous les messages du channel
-    const messages = await Message.query().where("channelId", channelId);
+    // Récupérer tous les messages du channel avec les infos de l'auteur
+    const messages = await Message.query()
+      .where("channelId", channelId)
+      .preload('author', (query) => query.select('id', 'name'))
 
     return response.ok(messages);
   }
