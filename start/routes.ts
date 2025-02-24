@@ -1,12 +1,9 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
-import transmit from "@adonisjs/transmit/services/main";
 
 const AuthController = () => import('#controllers/auth_controller')
 const ChannelController = () => import('#controllers/channel_controller')
 const MessageController = () => import('#controllers/message_controller')
-
-transmit.registerRoutes()
 
 router
   .group(() => {
