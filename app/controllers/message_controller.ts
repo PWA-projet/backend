@@ -57,6 +57,7 @@ export default class MessageController {
     // Emit the message to the connected clients
     io.to(channelId).emit('newMessage', {
       content: message.content,
+      channelId,
       author: user.name,
       timestamp: DateTime.now().toFormat('H:mm:ss'),
     });

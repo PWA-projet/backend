@@ -14,10 +14,12 @@ io.on('connection', (socket) => {
 
   socket.on('joinChannel', (channelId) => {
     console.log('User joined channel:', channelId);
-    socket.join(channelId);  // L'utilisateur rejoint un canal spécifique
+    socket.join(channelId);
   });
 
-  socket.on('msgFromFE', (data) => {
-    console.log('Message from frontend:', data);
+  socket.on('newMessage', (data) => {
+    console.log(`🔹 Message reçu: ${data.content} (Canal: ${data.channelId})`);
+    io.to(data.channelId).emit('newMessage', data);
   });
 });
+
