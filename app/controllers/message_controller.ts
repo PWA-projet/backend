@@ -4,10 +4,10 @@ import Message from "#models/message";
 import { storeValidator } from "#validators/message";
 
 export default class MessageController {
-  async index({ auth, request, response }: HttpContext) {
+  async index({ auth, params, response }: HttpContext) {
     const user = auth.getUserOrFail()
 
-    const { channelId } = request.qs();
+    const { channelId } = params;
 
     // Vérifier si l'utilisateur est bien membre du channel
     const userChannel = await UserChannel.query()
@@ -28,12 +28,12 @@ export default class MessageController {
     return response.ok(messages);
   }
 
-  async store({ auth, request, response }: HttpContext) {
+  async store({ auth, params, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
 
+    const { channelId } = params;
     const payload = await request.validateUsing(storeValidator);
-
-    const { content, channelId } = payload;
+    const { content } = payload;
 
     // Vérifier si l'utilisateur est bien membre du channel
     const userChannel = await UserChannel.query()

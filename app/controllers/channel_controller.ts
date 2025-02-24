@@ -35,12 +35,12 @@ export default class ChannelController {
 
   async show({ auth, params, response }: HttpContext) {
     const user = auth.getUserOrFail()
-    const { id } = params;
+    const { channelId } = params;
 
     // Vérifier si l'utilisateur est bien membre du channel
     const userChannel = await UserChannel.query()
       .where('userId', user.id)
-      .where('channelId', id)
+      .where('channelId', channelId)
       .first();
 
     if (!userChannel) {
@@ -48,7 +48,7 @@ export default class ChannelController {
     }
 
     // Récupérer le channel
-    const channel = await Channel.find(id);
+    const channel = await Channel.find(channelId);
     if (!channel) {
       return response.notFound({ message: "Channel introuvable" });
     }

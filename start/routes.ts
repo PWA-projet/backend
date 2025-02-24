@@ -1,5 +1,6 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
+// import transmit from '@adonisjs/transmit/services/main'
 
 const AuthController = () => import('#controllers/auth_controller')
 const ChannelController = () => import('#controllers/channel_controller')
@@ -27,19 +28,22 @@ router
   .group(() => {
     router.get('/', [ChannelController, 'index'])
     router.post('/', [ChannelController, 'create'])
-    router.get('/:id', [ChannelController, 'show'])
+    router.get('/:channelId', [ChannelController, 'show'])
     router.post('/join', [ChannelController, 'join'])
+    router.get('/:channelId/message', [MessageController, 'index'])
+    router.post('/:channelId/message', [MessageController, 'store'])
+
   })
   .use(middleware.auth())
   .prefix('channel')
 
-router
-  .group(() => {
-    router.get('/', [MessageController, 'index'])
-    router.post('/', [MessageController, 'store'])
 
-  })
-  .use(middleware.auth())
-  .prefix('message')
+const EventStreamController = () => import('#controllers/event_streams_controller')
+const SubscribesController = () => import('#controllers/subscribes_controller')
+const UnsubscribesController = () => import('#controllers/unsubscribes_controller')
+
+router.get('/__transmit/events', [EventStreamController])
+router.post('/__transmit/subscribe', [SubscribesController])
+router.post('/__transmit/unsubscribe', [UnsubscribesController])
 
 
