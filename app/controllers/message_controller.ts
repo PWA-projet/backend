@@ -2,7 +2,7 @@ import { HttpContext } from "@adonisjs/core/http";
 import UserChannel from "#models/user_channel";
 import Message from "#models/message";
 import { storeValidator } from "#validators/message";
-import transmit from "@adonisjs/transmit/services/main";
+import { io } from "#start/ws";
 import { DateTime } from "luxon";
 
 export default class MessageController {
@@ -54,11 +54,12 @@ export default class MessageController {
       authorId: user.id,
     });
 
-    // Émettre l'événement indiquant que l'utilisateur a rejoint le canal
-    transmit.broadcast(`message/${message}`, {
-      message:`${DateTime.now().toFormat('H:mm:ss')} ${user.name} : ${message}`,
-      type: "message",
-    })
+    // Emit the message to the connected clients
+    io.to(channelId).emit('newMessage', {
+      content: message.content,
+      author: user.name,
+      timestamp: DateTime.now().toFormat('H:mm:ss'),
+    });
 
     return response.created(message);
   }
