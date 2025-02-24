@@ -1,10 +1,12 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
-// import transmit from '@adonisjs/transmit/services/main'
+import transmit from "@adonisjs/transmit/services/main";
 
 const AuthController = () => import('#controllers/auth_controller')
 const ChannelController = () => import('#controllers/channel_controller')
 const MessageController = () => import('#controllers/message_controller')
+
+transmit.registerRoutes()
 
 router
   .group(() => {
@@ -36,14 +38,3 @@ router
   })
   .use(middleware.auth())
   .prefix('channel')
-
-
-const EventStreamController = () => import('#controllers/event_streams_controller')
-const SubscribesController = () => import('#controllers/subscribes_controller')
-const UnsubscribesController = () => import('#controllers/unsubscribes_controller')
-
-router.get('/__transmit/events', [EventStreamController])
-router.post('/__transmit/subscribe', [SubscribesController])
-router.post('/__transmit/unsubscribe', [UnsubscribesController])
-
-
