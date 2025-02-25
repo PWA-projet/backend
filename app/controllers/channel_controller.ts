@@ -2,7 +2,6 @@ import type { HttpContext } from "@adonisjs/core/http";
 import Channel from "#models/channel";
 import { createValidator } from "#validators/channel";
 import UserChannel from "#models/user_channel";
-import transmit from "@adonisjs/transmit/services/main";
 
 export default class ChannelController {
   async index({ auth, response }: HttpContext) {
@@ -82,12 +81,6 @@ export default class ChannelController {
       userId: user.id,
       channelId: channel.id,
     });
-
-    // Émettre l'événement indiquant que l'utilisateur a rejoint le canal
-    transmit.broadcast(`channel/${channel}`, {
-      message:`${user.name} joined the channel`,
-      type: "join",
-    })
 
     return response.ok({ message: "Vous avez rejoint le channel avec succès", channel });
   }
