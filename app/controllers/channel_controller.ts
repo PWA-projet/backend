@@ -2,6 +2,7 @@ import type { HttpContext } from "@adonisjs/core/http";
 import Channel from "#models/channel";
 import { createValidator } from "#validators/channel";
 import UserChannel from "#models/user_channel";
+import transmit from "@adonisjs/transmit/services/main";
 
 export default class ChannelController {
   async index({ auth, response }: HttpContext) {
@@ -35,12 +36,12 @@ export default class ChannelController {
 
   async show({ auth, params, response }: HttpContext) {
     const user = auth.getUserOrFail()
-    const { id } = params;
+    const { channelId } = params;
 
     // Vérifier si l'utilisateur est bien membre du channel
     const userChannel = await UserChannel.query()
       .where('userId', user.id)
-      .where('channelId', id)
+      .where('channelId', channelId)
       .first();
 
     if (!userChannel) {
@@ -48,7 +49,7 @@ export default class ChannelController {
     }
 
     // Récupérer le channel
-    const channel = await Channel.find(id);
+    const channel = await Channel.find(channelId);
     if (!channel) {
       return response.notFound({ message: "Channel introuvable" });
     }
@@ -81,6 +82,12 @@ export default class ChannelController {
       userId: user.id,
       channelId: channel.id,
     });
+
+    // Émettre l'événement indiquant que l'utilisateur a rejoint le canal
+    transmit.broadcast(`channel/${channel}`, {
+      message:`${user.name} joined the channel`,
+      type: "join",
+    })
 
     return response.ok({ message: "Vous avez rejoint le channel avec succès", channel });
   }

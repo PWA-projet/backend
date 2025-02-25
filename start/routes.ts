@@ -27,19 +27,11 @@ router
   .group(() => {
     router.get('/', [ChannelController, 'index'])
     router.post('/', [ChannelController, 'create'])
-    router.get('/:id', [ChannelController, 'show'])
+    router.get('/:channelId', [ChannelController, 'show'])
     router.post('/join', [ChannelController, 'join'])
+    router.get('/:channelId/message', [MessageController, 'index'])
+    router.post('/:channelId/message', [MessageController, 'store'])
+
   })
   .use(middleware.auth())
   .prefix('channel')
-
-router
-  .group(() => {
-    router.get('/', [MessageController, 'index'])
-    router.post('/', [MessageController, 'store'])
-
-  })
-  .use(middleware.auth())
-  .prefix('message')
-
-
