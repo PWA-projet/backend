@@ -64,7 +64,6 @@ export default class MessageController {
         channelId: message.channelId,
         authorId: message.authorId,
       });
-      console.log(`📡 Message envoyé au channel ${channelId}:`, message);
 
       return response.created(message)
 
