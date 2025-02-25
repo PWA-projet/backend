@@ -13,14 +13,14 @@ io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
   socket.on("joinChannel", (channelId) => {
-    console.log(`🔹 User ${socket.id} joined channel: ${channelId}`);
-    socket.join(channelId);
+    const stringChannelId = String(channelId); // Assure que c'est une string
+    console.log(`🔹 User ${socket.id} joined channel: ${stringChannelId}`);
+    socket.join(stringChannelId);
   });
 
   socket.on("newMessage", (data) => {
     const stringChannelId = String(data.channelId); // Assure que c'est une string
-    console.log(`🔹 Message reçu: ${data.content} (Channel: ${data.channelId})`);
-
+    console.log(`🔹 Message reçu: ${data.content} (Channel: ${stringChannelId})`);
     io.to(stringChannelId).emit("newMessage", data);
   });
 
