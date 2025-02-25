@@ -7,7 +7,7 @@ import User from "#models/user";
 
 export default class Channel extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
 
   @column()
   declare name: string

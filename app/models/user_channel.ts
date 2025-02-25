@@ -6,13 +6,13 @@ import * as relations from "@adonisjs/lucid/types/relations";
 
 export default class UserChannel extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
 
   @column()
-  declare userId: number
+  declare userId: string
 
   @column()
-  declare channelId: number
+  declare channelId: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

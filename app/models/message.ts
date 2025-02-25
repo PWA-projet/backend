@@ -6,16 +6,16 @@ import User from "#models/user";
 
 export default class Message extends BaseModel {
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
 
   @column()
   declare content: string
 
   @column()
-  declare channelId: number
+  declare channelId: string
 
   @column({ serializeAs: null })
-  declare authorId: number
+  declare authorId: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
