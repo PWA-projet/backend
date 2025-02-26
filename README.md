@@ -75,6 +75,12 @@ Run the migrations
 node ace migration:run
 ```
 
+## Websocket
+
+```bash
+node ace make:preload ws --register
+```
+
 ## Deploy to docker
 
 1. Build the image
