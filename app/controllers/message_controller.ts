@@ -2,7 +2,6 @@ import { HttpContext } from "@adonisjs/core/http";
 import UserChannel from "#models/user_channel";
 import Message from "#models/message";
 import { storeValidator } from "#validators/message";
-import { io } from "#start/ws";
 
 export default class MessageController {
   async index({ auth, params, response }: HttpContext) {
@@ -57,13 +56,6 @@ export default class MessageController {
         channelId,
         authorId: user.id,
       })
-
-      // Émettre le message aux clients connectés
-      io.to(channelId).emit('newMessage', {
-        content: message.content,
-        channelId: message.channelId,
-        authorId: message.authorId,
-      });
 
       return response.created(message)
 
