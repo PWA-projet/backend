@@ -5,84 +5,99 @@ import UserChannel from "#models/user_channel";
 
 export default class ChannelController {
   async index({ auth, response }: HttpContext) {
-    const user = auth.getUserOrFail();
+    try {
+      const user = auth.getUserOrFail()
 
-    // Récupérer directement les IDs des channels auxquels l'utilisateur est associé
-    const channelIds = (await UserChannel.query()
-      .where('userId', user.id))
-      .map(uc => uc.channelId);
+      const channelIds = (await UserChannel.query().where('userId', user.id)).map(
+        (uc) => uc.channelId
+      )
 
-    // Récupérer uniquement les channels correspondants
-    const channels = await Channel.query().whereIn('id', channelIds);
+      const channels = await Channel.query().whereIn('id', channelIds)
 
-    return response.ok(channels);
+      return response.ok(channels)
+    } catch (error) {
+      return response.internalServerError({
+        message: 'Erreur lors de la récupération des channels'
+      })
+    }
   }
 
   async create({ auth, request, response }: HttpContext) {
-    const payload = await request.validateUsing(createValidator)
-    const user = auth.getUserOrFail()
+    try {
+      const payload = await request.validateUsing(createValidator)
+      const user = auth.getUserOrFail()
 
-    const channel = await Channel.create(payload)
+      const channel = await Channel.create(payload)
 
-    // Ajouter l'utilisateur dans la table pivot 'user_channels'
-    await UserChannel.create({
-      userId: user.id,
-      channelId: channel.id,
-    })
+      await UserChannel.create({
+        userId: user.id,
+        channelId: channel.id,
+      })
 
-    return response.ok({ message: "Vous avez créer le channel avec succès" });
+      return response.ok({ message: 'Vous avez créé le channel avec succès' })
+    } catch (error) {
+      return response.internalServerError({
+        message: 'Erreur lors de la création du channel'
+      })
+    }
   }
 
   async show({ auth, params, response }: HttpContext) {
-    const user = auth.getUserOrFail()
-    const { channelId } = params;
+    try {
+      const user = auth.getUserOrFail()
+      const { channelId } = params
 
-    // Vérifier si l'utilisateur est bien membre du channel
-    const userChannel = await UserChannel.query()
-      .where('userId', user.id)
-      .where('channelId', channelId)
-      .first();
+      const userChannel = await UserChannel.query()
+        .where('userId', user.id)
+        .where('channelId', channelId)
+        .first()
 
-    if (!userChannel) {
-      return response.forbidden({ message: "Vous n'êtes pas membre de ce channel" });
+      if (!userChannel) {
+        return response.forbidden({ message: "Vous n'êtes pas membre de ce channel" })
+      }
+
+      const channel = await Channel.find(channelId)
+      if (!channel) {
+        return response.notFound({ message: 'Channel introuvable' })
+      }
+
+      return response.ok(channel)
+    } catch (error) {
+      return response.internalServerError({
+        message: 'Erreur lors de la récupération du channel'
+      })
     }
-
-    // Récupérer le channel
-    const channel = await Channel.find(channelId);
-    if (!channel) {
-      return response.notFound({ message: "Channel introuvable" });
-    }
-
-    return response.ok(channel);
   }
 
   async join({ auth, request, response }: HttpContext) {
-    const user = auth.getUserOrFail()
-    const { key } = request.only(['key']);
+    try {
+      const user = auth.getUserOrFail()
+      const { key } = request.only(['key'])
 
-    // Vérifier si un channel existe avec cette clé
-    const channel = await Channel.findBy('key', key);
-    if (!channel) {
-      return response.notFound({ message: "Channel introuvable avec cette clé" });
+      const channel = await Channel.findBy('key', key)
+      if (!channel) {
+        return response.notFound({ message: 'Channel introuvable avec cette clé' })
+      }
+
+      const existingEntry = await UserChannel.query()
+        .where('userId', user.id)
+        .where('channelId', channel.id)
+        .first()
+
+      if (existingEntry) {
+        return response.badRequest({ message: 'Vous êtes déjà membre de ce channel' })
+      }
+
+      await UserChannel.create({
+        userId: user.id,
+        channelId: channel.id,
+      })
+
+      return response.ok({ message: 'Vous avez rejoint le channel avec succès', channel })
+    } catch (error) {
+      return response.internalServerError({
+        message: 'Erreur lors de la tentative de rejoindre le channel'
+      })
     }
-
-    // Vérifier si l'utilisateur est déjà dans le channel
-    const existingEntry = await UserChannel.query()
-      .where('userId', user.id)
-      .where('channelId', channel.id)
-      .first();
-
-    if (existingEntry) {
-      return response.badRequest({ message: "Vous êtes déjà membre de ce channel" });
-    }
-
-    // Ajouter l'utilisateur au channel
-    await UserChannel.create({
-      userId: user.id,
-      channelId: channel.id,
-    });
-
-    return response.ok({ message: "Vous avez rejoint le channel avec succès", channel });
   }
 }
-
