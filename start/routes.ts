@@ -4,6 +4,7 @@ import { middleware } from './kernel.js'
 const AuthController = () => import('#controllers/auth_controller')
 const ChannelController = () => import('#controllers/channel_controller')
 const MessageController = () => import('#controllers/message_controller')
+const NotificationController = () => import('#controllers/notification_controller')
 
 router
   .group(() => {
@@ -35,3 +36,8 @@ router
   })
   .use(middleware.auth())
   .prefix('channel')
+
+// Route pour s'abonner aux notifications
+router.post('/subscribe-notification', [NotificationController, 'subscribe'])
+// Route pour envoyer une notification
+router.post('/send-notification', [NotificationController, 'send'])
