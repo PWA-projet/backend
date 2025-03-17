@@ -41,14 +41,20 @@ export default class NotificationController {
       const notifications = subscriptions.map(async (subscription) => {
         const pushSubscription: PushSubscription = {
           endpoint: subscription.endpoint,
-          keys: JSON.parse(subscription.keys),
+          keys: subscription.keys, // Utilisation directe de `keys` (c'est déjà un objet)
         };
 
         // Tente d'envoyer la notification
         try {
           await webPush.sendNotification(pushSubscription, JSON.stringify({ title, message }));
         } catch (err) {
-          console.error('Erreur lors de l\'envoi de la notification à l\'endpoint:', pushSubscription.endpoint, err);
+          if (err.statusCode === 410) {
+            console.log('Abonnement expiré ou annulé. Suppression de l\'abonnement:', pushSubscription.endpoint);
+            // Supprimez l'abonnement expiré de la base de données
+            await Subscription.query().where('endpoint', pushSubscription.endpoint).delete();
+          } else {
+            console.error('Erreur lors de l\'envoi de la notification à l\'endpoint:', pushSubscription.endpoint, err);
+          }
         }
       });
 
