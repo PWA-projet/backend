@@ -25,10 +25,11 @@ export default class NotificationController {
   async send({ request, response }: HttpContext) {
     try {
       // Récupère le payload de la notification (titre et message)
-      const { title, message } = request.only(['title', 'message']);
+      const {title, message} = request.only(['title', 'message']);
 
       // Récupère toutes les abonnements de la base de données
       const subscriptions = await Subscription.all();
+      console.log(subscriptions);
 
       // Configure les clés VAPID pour web-push
       webPush.setVapidDetails(
@@ -39,22 +40,19 @@ export default class NotificationController {
 
       // Envoie la notification à chaque abonnement
       const notifications = subscriptions.map(async (subscription) => {
+        // Check if keys are stored as a string and parse them
+        const keys = typeof subscription.keys === 'string' ? JSON.parse(subscription.keys) : subscription.keys;
+
         const pushSubscription: PushSubscription = {
           endpoint: subscription.endpoint,
-          keys: subscription.keys, // Utilisation directe de `keys` (c'est déjà un objet)
+          keys: keys,
         };
 
         // Tente d'envoyer la notification
         try {
-          await webPush.sendNotification(pushSubscription, JSON.stringify({ title, message }));
+          await webPush.sendNotification(pushSubscription, JSON.stringify({title, message}));
         } catch (err) {
-          if (err.statusCode === 410) {
-            console.log('Abonnement expiré ou annulé. Suppression de l\'abonnement:', pushSubscription.endpoint);
-            // Supprimez l'abonnement expiré de la base de données
-            await Subscription.query().where('endpoint', pushSubscription.endpoint).delete();
-          } else {
-            console.error('Erreur lors de l\'envoi de la notification à l\'endpoint:', pushSubscription.endpoint, err);
-          }
+          console.error('Erreur lors de l\'envoi de la notification à l\'endpoint:', pushSubscription.endpoint, err);
         }
       });
 
@@ -62,10 +60,10 @@ export default class NotificationController {
       await Promise.all(notifications);
 
       // Réponse après envoi de toutes les notifications
-      return response.ok({ message: 'Notifications envoyées avec succès !' });
+      return response.ok({message: 'Notifications envoyées avec succès !'});
     } catch (error) {
       console.error('Erreur lors de l\'envoi des notifications:', error);
-      return response.internalServerError({ message: 'Échec de l\'envoi des notifications.' });
+      return response.internalServerError({message: 'Échec de l\'envoi des notifications.'});
     }
   }
 }
