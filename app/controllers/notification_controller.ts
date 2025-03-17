@@ -1,6 +1,6 @@
 import type { HttpContext } from "@adonisjs/core/http";
 import Subscription from "#models/subscription";
-import webPush from 'web-push'
+import webPush, {PushSubscription} from 'web-push'
 import env from "#start/env";
 
 export default class NotificationController {
@@ -24,52 +24,42 @@ export default class NotificationController {
 
   async send({ request, response }: HttpContext) {
     try {
-      const { title, body, url } = request.only(['title', 'body', 'url']);
+      // Récupère le payload de la notification (titre et message)
+      const { title, message } = request.only(['title', 'message']);
 
-      // Récupérer toutes les abonnements stockés en base
+      // Récupère toutes les abonnements de la base de données
       const subscriptions = await Subscription.all();
 
-      if (subscriptions.length === 0) {
-        return response.ok({ message: 'Aucun abonné pour recevoir la notification.' });
-      }
-
-      // Charger les clés VAPID depuis les variables d'environnement
-      const publicKey = env.get('VAPID_PUBLIC_KEY');
-      const privateKey = env.get('VAPID_PRIVATE_KEY');
-
-      if (!publicKey || !privateKey) {
-        return response.internalServerError({ message: 'Clés VAPID manquantes dans les variables d\'environnement.' });
-      }
-
-      // Configurer les détails VAPID
+      // Configure les clés VAPID pour web-push
       webPush.setVapidDetails(
-        'mailto:gabet.thibaut@gmail.com',  // L'adresse email de contact
-        publicKey,  // Clé publique VAPID
-        privateKey  // Clé privée VAPID
+        `mailto:${env.get('VAPID_EMAIL')}`, // Remplacez par votre email
+        env.get('VAPID_PUBLIC_KEY'), // Clé publique de VAPID
+        env.get('VAPID_PRIVATE_KEY') // Clé privée de VAPID
       );
 
-      // Contenu de la notification
-      const payload = JSON.stringify({ title, body, url });
+      // Envoie la notification à chaque abonnement
+      const notifications = subscriptions.map(async (subscription) => {
+        const pushSubscription: PushSubscription = {
+          endpoint: subscription.endpoint,
+          keys: JSON.parse(subscription.keys),
+        };
 
-      // Envoyer une notification à chaque abonné
-      const sendPromises = subscriptions.map(async (subscription) => {
-        const pushSubscription = JSON.parse(subscription.keys);
-
+        // Tente d'envoyer la notification
         try {
-          await webPush.sendNotification(pushSubscription, payload);
+          await webPush.sendNotification(pushSubscription, JSON.stringify({ title, message }));
         } catch (err) {
-          console.error('Erreur en envoyant la notification:', err);
+          console.error('Erreur lors de l\'envoi de la notification à l\'endpoint:', pushSubscription.endpoint, err);
         }
       });
 
-      await Promise.all(sendPromises);
+      // Attends que toutes les notifications soient envoyées
+      await Promise.all(notifications);
 
-      return response.ok({ message: 'Notification envoyée avec succès !' });
-
+      // Réponse après envoi de toutes les notifications
+      return response.ok({ message: 'Notifications envoyées avec succès !' });
     } catch (error) {
-      return response.internalServerError({
-        message: 'Erreur lors de l\'envoi de la notification.'
-      })
+      console.error('Erreur lors de l\'envoi des notifications:', error);
+      return response.internalServerError({ message: 'Échec de l\'envoi des notifications.' });
     }
   }
 }
