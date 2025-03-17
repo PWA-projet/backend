@@ -62,13 +62,12 @@ export default class NotificationController {
           data: {
             dateOfArrival: Date.now(),
             primaryKey: Date.now(),
-            url: channelUrl // L'URL du canal à inclure dans les données
+            url: channelUrl // L'URL du channel
           },
           actions: [
             {
               action: 'explore',
-              title: 'Allez sur le chanel',
-              url: channelUrl
+              title: 'Allez sur le chanel'
             }
           ]
         },
