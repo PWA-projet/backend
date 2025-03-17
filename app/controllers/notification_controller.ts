@@ -48,16 +48,16 @@ export default class NotificationController {
         env.get('VAPID_PRIVATE_KEY')
       );
 
-      // Définir l'URL du canal
+      // Définir les URLs
       const channelUrl = `${env.get('FRONTEND_URL')}/channel/${channelId}`;
-      console.log('Channel URL:', channelUrl);  // Log de l'URL générée
+      const iconUrl = `${env.get('FRONTEND_URL')}/icons/icon.png`;
 
       // Définir le payload de la notification
       const notificationPayload = {
         notification: {
           title: author.name,
           body: message,
-          icon: `${env.get('FRONTEND_URL')}/icons/icon-192x192.png`,
+          icon: iconUrl,
           vibrate: [100, 50, 100],
           data: {
             dateOfArrival: Date.now(),
