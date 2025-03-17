@@ -39,5 +39,3 @@ router
 
 // Route pour s'abonner aux notifications
 router.post('/subscribe-notification', [NotificationController, 'subscribe']).use(middleware.auth())
-// Route pour envoyer une notification
-// router.post('/send-notification', [NotificationController, 'send'])
