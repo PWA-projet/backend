@@ -48,6 +48,10 @@ export default class NotificationController {
         env.get('VAPID_PRIVATE_KEY')
       );
 
+      // Définir l'URL du canal
+      const channelUrl = `${env.get('FRONTEND_URL')}/channel/${channelId}`;
+      console.log('Channel URL:', channelUrl);  // Log de l'URL générée
+
       // Définir le payload de la notification
       const notificationPayload = {
         notification: {
@@ -58,13 +62,15 @@ export default class NotificationController {
           data: {
             dateOfArrival: Date.now(),
             primaryKey: Date.now(),
+            url: channelUrl // L'URL du canal à inclure dans les données
           },
           actions: [
             {
-              action: 'explore',
-              title: 'Allez sur le site',
-            },
-          ],
+              action: 'explore', // L'action qui sera utilisée quand l'utilisateur clique
+              title: 'Allez sur le canal',
+              url: channelUrl // L'URL du canal à ouvrir
+            }
+          ]
         },
       };
 
