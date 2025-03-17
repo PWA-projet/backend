@@ -39,6 +39,11 @@ mkdir tmp
 node ace migration:run
 ```
 
+5. generate Vapid keys 
+```bash
+npx web-push generate-vapid-keys
+```
+
 ## Development server
 
 Start Command

@@ -2,6 +2,7 @@ import { HttpContext } from "@adonisjs/core/http";
 import UserChannel from "#models/user_channel";
 import Message from "#models/message";
 import { storeValidator } from "#validators/message";
+import NotificationController from "#controllers/notification_controller";
 
 export default class MessageController {
   async index({ auth, params, response }: HttpContext) {
@@ -62,6 +63,11 @@ export default class MessageController {
         channelId,
         authorId: user.id,
       })
+
+      // Envoi de la notification après la création du message
+      const notificationController = new NotificationController();  // Créer une instance du NotificationController
+      await notificationController.sendToUsersChannel(channelId, user, content);
+
 
       return response.created(message)
 
