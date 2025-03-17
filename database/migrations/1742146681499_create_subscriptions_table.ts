@@ -8,6 +8,7 @@ export default class extends BaseSchema {
       table.increments('id')
       table.text('endpoint').notNullable().unique()
       table.json('keys').notNullable() // Stocke les clés d'authentification
+      table.integer('user_id').unsigned().references('users.id').onDelete('CASCADE')
       table.timestamps(true) // Ajoute automatiquement `created_at` et `updated_at`
     })
   }
