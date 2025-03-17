@@ -66,9 +66,9 @@ export default class NotificationController {
           },
           actions: [
             {
-              action: 'explore', // L'action qui sera utilisée quand l'utilisateur clique
+              action: 'explore',
               title: 'Allez sur le chanel',
-              url: channelUrl // L'URL du canal à ouvrir
+              url: channelUrl
             }
           ]
         },
