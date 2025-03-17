@@ -57,7 +57,7 @@ export default class NotificationController {
         notification: {
           title: author.name,
           body: message,
-          icon: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg',
+          icon: `${env.get('FRONTEND_URL')}/icons/icon-192x192.png`,
           vibrate: [100, 50, 100],
           data: {
             dateOfArrival: Date.now(),
