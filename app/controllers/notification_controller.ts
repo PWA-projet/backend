@@ -50,7 +50,7 @@ export default class NotificationController {
 
       // Définir les URLs
       const channelUrl = `${env.get('FRONTEND_URL')}/channel/${channelId}`;
-      const iconUrl = `${env.get('FRONTEND_URL')}/icons/icon.png`;
+      const iconUrl = `${env.get('FRONTEND_URL')}/icons/icon-192x192.png`;
 
       // Définir le payload de la notification
       const notificationPayload = {
