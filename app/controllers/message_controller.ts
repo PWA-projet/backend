@@ -66,7 +66,7 @@ export default class MessageController {
 
       // Envoi de la notification après la création du message
       const notificationController = new NotificationController();  // Créer une instance du NotificationController
-      await notificationController.sendToUsersChannel(channelId, user.id, 'Nouveau message dans votre channel', content);
+      await notificationController.sendToUsersChannel(channelId, user, content);
 
 
       return response.created(message)

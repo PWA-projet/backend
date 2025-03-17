@@ -3,6 +3,7 @@ import Subscription from "#models/subscription";
 import webPush, {PushSubscription} from 'web-push'
 import env from "#start/env";
 import UserChannel from "#models/user_channel";
+import User from "#models/user";
 
 export default class NotificationController {
   async subscribe({ auth, request, response }: HttpContext) {
@@ -26,12 +27,12 @@ export default class NotificationController {
     return response.created({ message: 'Abonnement enregistré !', subscription })
   }
 
-  async sendToUsersChannel(channelId: number, authorId: string, title: string, message: string) {
+  async sendToUsersChannel(channelId: number, author: User, message: string) {
     try {
       // Récupérer tous les utilisateurs abonnés au canal
       const userChannels = await UserChannel.query()
         .where('channelId', channelId)
-        .whereNot('userId', authorId) // Exclure l'utilisateur qui envoie le message
+        .whereNot('userId', author.id) // Exclure l'utilisateur qui envoie le message
         .preload('user');
 
       // S'il n'y a pas d'utilisateurs abonnés, ne rien faire
@@ -50,8 +51,8 @@ export default class NotificationController {
       // Définir le payload de la notification
       const notificationPayload = {
         notification: {
-          title: title || 'Nouvelle notification',
-          body: message || 'Voici un message de notification',
+          title: author.name,
+          body: message,
           icon: 'assets/main-page-logo-small-hat.png',
           vibrate: [100, 50, 100],
           data: {
