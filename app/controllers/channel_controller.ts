@@ -44,28 +44,42 @@ export default class ChannelController {
 
   async show({ auth, params, response }: HttpContext) {
     try {
-      const user = auth.getUserOrFail()
-      const { channelId } = params
+      const user = auth.getUserOrFail();
+      const { channelId } = params;
 
       const userChannel = await UserChannel.query()
         .where('userId', user.id)
         .where('channelId', channelId)
-        .first()
+        .first();
 
       if (!userChannel) {
-        return response.forbidden({ message: "Vous n'êtes pas membre de ce channel" })
+        return response.forbidden({ message: "Vous n'êtes pas membre de ce channel" });
       }
 
-      const channel = await Channel.find(channelId)
-      if (!channel) {
-        return response.notFound({ message: 'Channel introuvable' })
-      }
+      const channel = await Channel.query()
+        .where('id', channelId)
+        .preload('users', (query) => {
+          query.select('id', 'name');
+        })
+        .firstOrFail();
 
-      return response.ok(channel)
+      const responseData = {
+        id: channel.id,
+        name: channel.name,
+        key: channel.key,
+        members: channel.users.map((user) => ({
+          id: user.id,
+          name: user.name,
+        })),
+      };
+      console.log('Response Data:', responseData);
+
+      return response.ok(responseData);
     } catch (error) {
+      console.error(error);
       return response.internalServerError({
         message: 'Erreur lors de la récupération du channel'
-      })
+      });
     }
   }
 
