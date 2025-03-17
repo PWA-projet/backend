@@ -67,7 +67,8 @@ export default class NotificationController {
           actions: [
             {
               action: 'explore',
-              title: 'Allez sur le chanel'
+              title: 'Allez sur le chanel',
+              url: channelUrl
             }
           ]
         },
