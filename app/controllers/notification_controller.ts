@@ -57,7 +57,7 @@ export default class NotificationController {
         notification: {
           title: author.name,
           body: message,
-          icon: 'assets/main-page-logo-small-hat.png',
+          icon: '/assets/icon-192x192.png',
           vibrate: [100, 50, 100],
           data: {
             dateOfArrival: Date.now(),
@@ -67,7 +67,7 @@ export default class NotificationController {
           actions: [
             {
               action: 'explore', // L'action qui sera utilisée quand l'utilisateur clique
-              title: 'Allez sur le canal',
+              title: 'Allez sur le chanel',
               url: channelUrl // L'URL du canal à ouvrir
             }
           ]
