@@ -9,12 +9,9 @@ export default class AuthController {
       const user = await User.verifyCredentials(email, password)
       const token = await User.accessTokens.create(user)
 
-      return response.ok({
-        token: token,
-        ...user.serialize(),
-      })
-    } catch (error) {
-      return response.badRequest({ message: 'Invalid credentials', error: error.message })
+      return response.ok({ token: token, ...user.serialize() })
+    } catch {
+      return response.badRequest({ message: 'Invalid credentials' })
     }
   }
 
@@ -23,24 +20,20 @@ export default class AuthController {
       const payload = await request.validateUsing(registerValidator)
       const user = await User.create(payload)
       return response.created(user)
-    } catch (error) {
-      return response.badRequest({ message: 'Registration failed', error: error.message })
+    } catch {
+      return response.badRequest({ message: 'Registration failed' })
     }
   }
 
   async logout({ auth, response }: HttpContext) {
     try {
-      const user = auth.getUserOrFail()
       const token = auth.user?.currentAccessToken.identifier
+      if (!token) return response.badRequest({ message: 'Token not found' })
 
-      if (!token) {
-        return response.badRequest({ message: 'Token not found' })
-      }
-
-      await User.accessTokens.delete(user, token)
+      await User.accessTokens.delete(auth.getUserOrFail(), token)
       return response.ok({ message: 'Logged out' })
-    } catch (error) {
-      return response.badRequest({ message: 'Logout failed', error: error.message })
+    } catch {
+      return response.badRequest({ message: 'Logout failed' })
     }
   }
 }

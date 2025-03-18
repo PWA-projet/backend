@@ -7,71 +7,52 @@ import NotificationController from "#controllers/notification_controller";
 export default class MessageController {
   async index({ auth, params, response }: HttpContext) {
     try {
-      const user = auth.getUserOrFail();
-
+      const authUser = auth.getUserOrFail()
       const { channelId } = params;
 
-      // Vérifier si l'utilisateur est bien membre du channel
       const userChannel = await UserChannel.query()
-        .where("userId", user.id)
-        .where("channelId", channelId)
+        .where({ userId: authUser.id, channelId })
         .first();
 
       if (!userChannel) {
         return response.forbidden({ message: "Vous n'avez pas accès à ce channel" });
       }
 
-      // Récupérer tous les messages du channel avec les infos de l'auteur
       const messages = await Message.query()
-        .where("channelId", channelId)
+        .where({ channelId })
         .preload('author', (query) => query.select('id', 'name'))
         .orderBy('createdAt', 'asc');
 
       return response.ok(messages);
-    } catch (error) {
-      return response.internalServerError({
-        message: "Une erreur est survenue, veuillez réessayer plus tard."
-      });
+    } catch {
+      return response.internalServerError({ message: 'Une erreur est survenue, veuillez réessayer plus tard.' });
     }
   }
 
+
   async store({ auth, params, request, response }: HttpContext) {
     try {
-      const user = auth.getUserOrFail()
-
+      const authUser = auth.getUserOrFail()
       const { channelId } = params
-      const payload = await request.validateUsing(storeValidator)
-      const { content } = payload
+      const { content } = await request.validateUsing(storeValidator)
 
-      if (!content || content.trim() === '') {
+      if (!content?.trim()) {
         return response.badRequest({ message: 'Le contenu du message ne peut pas être vide.' })
       }
 
-      // Vérifier si l'utilisateur est bien membre du channel
       const userChannel = await UserChannel.query()
-        .where('userId', user.id)
-        .where('channelId', channelId)
+        .where({ userId: authUser.id, channelId })
         .first()
 
       if (!userChannel) {
         return response.forbidden({ message: "Vous n'avez pas accès à ce channel." })
       }
 
-      // Créer le message
-      const message = await Message.create({
-        content,
-        channelId,
-        authorId: user.id,
-      })
-
-      // Envoi de la notification après la création du message
-      const notificationController = new NotificationController();  // Créer une instance du NotificationController
-      await notificationController.sendToUsersChannel(channelId, user, content);
-
+      const message = await Message.create({ content, channelId, authorId: authUser.id })
+      await new NotificationController().sendToUsersChannel(channelId, authUser, content)
 
       return response.created(message)
-
-    } catch (error) {
+    } catch {
       return response.internalServerError({
         message: 'Une erreur est survenue, veuillez réessayer plus tard.',
       })
