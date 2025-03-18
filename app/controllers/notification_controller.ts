@@ -62,15 +62,14 @@ export default class NotificationController {
           data: {
             dateOfArrival: Date.now(),
             primaryKey: Date.now(),
-            url: channelUrl // L'URL du channel
+            url: channelUrl, // L'URL du channel
+            onActionClick: {
+              default: {
+                operation: "openWindow",
+                url: channelUrl,
+              },
+            },
           },
-          actions: [
-            {
-              action: 'explore',
-              title: 'Allez sur le chanel',
-              url: channelUrl
-            }
-          ]
         },
       };
 
