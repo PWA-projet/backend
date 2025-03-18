@@ -6,9 +6,9 @@ import UserChannel from "#models/user_channel";
 export default class ChannelController {
   async index({ auth, response }: HttpContext) {
     try {
-      const user = auth.getUserOrFail()
+      const authUser = auth.getUserOrFail()
 
-      const channelIds = (await UserChannel.query().where('userId', user.id)).map(
+      const channelIds = (await UserChannel.query().where('userId', authUser.id)).map(
         (uc) => uc.channelId
       )
 
@@ -25,12 +25,12 @@ export default class ChannelController {
   async create({ auth, request, response }: HttpContext) {
     try {
       const payload = await request.validateUsing(createValidator)
-      const user = auth.getUserOrFail()
+      const authUser = auth.getUserOrFail()
 
       const channel = await Channel.create(payload)
 
       await UserChannel.create({
-        userId: user.id,
+        userId: authUser.id,
         channelId: channel.id,
       })
 
@@ -44,13 +44,12 @@ export default class ChannelController {
 
   async show({ auth, params, response }: HttpContext) {
     try {
-      const user = auth.getUserOrFail();
+      const authUser = auth.getUserOrFail();
       const { channelId } = params;
 
       const userChannel = await UserChannel.query()
-        .where('userId', user.id)
-        .where('channelId', channelId)
-        .first();
+        .where({ userId: authUser.id, channelId })
+        .first()
 
       if (!userChannel) {
         return response.forbidden({ message: "Vous n'êtes pas membre de ce channel" });
@@ -58,23 +57,15 @@ export default class ChannelController {
 
       const channel = await Channel.query()
         .where('id', channelId)
-        .preload('users', (query) => {
-          query.select('id', 'name');
-        })
-        .firstOrFail();
+        .preload('users', (query) => query.select('id', 'name'))
+        .firstOrFail()
 
-      const responseData = {
+      return response.ok({
         id: channel.id,
         name: channel.name,
         key: channel.key,
-        members: channel.users.map((user) => ({
-          id: user.id,
-          name: user.name,
-        })),
-      };
-      console.log('Response Data:', responseData);
-
-      return response.ok(responseData);
+        members: channel.users.map(({ id, name }) => ({ id, name }))
+      })
     } catch (error) {
       console.error(error);
       return response.internalServerError({
@@ -85,7 +76,7 @@ export default class ChannelController {
 
   async join({ auth, request, response }: HttpContext) {
     try {
-      const user = auth.getUserOrFail()
+      const authUser = auth.getUserOrFail()
       const { key } = request.only(['key'])
 
       const channel = await Channel.findBy('key', key)
@@ -94,8 +85,7 @@ export default class ChannelController {
       }
 
       const existingEntry = await UserChannel.query()
-        .where('userId', user.id)
-        .where('channelId', channel.id)
+        .where({ userId: authUser.id, channelId: channel.id })
         .first()
 
       if (existingEntry) {
@@ -103,7 +93,7 @@ export default class ChannelController {
       }
 
       await UserChannel.create({
-        userId: user.id,
+        userId: authUser.id,
         channelId: channel.id,
       })
 

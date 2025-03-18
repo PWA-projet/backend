@@ -5,10 +5,16 @@ import env from "#start/env";
 import UserChannel from "#models/user_channel";
 import User from "#models/user";
 
+// Configure les clés VAPID pour web-push
+webPush.setVapidDetails(
+  `mailto:${env.get('VAPID_EMAIL')}`,
+  env.get('VAPID_PUBLIC_KEY'),
+  env.get('VAPID_PRIVATE_KEY')
+);
+
 export default class NotificationController {
   async subscribe({ auth, request, response }: HttpContext) {
-    const user = auth.getUserOrFail();
-
+    const authUser = auth.getUserOrFail();
     const { endpoint, keys } = request.only(['endpoint', 'keys'])
 
     // Vérifie si l'abonnement existe déjà
@@ -21,7 +27,7 @@ export default class NotificationController {
     const subscription = await Subscription.create({
       endpoint,
       keys: JSON.stringify(keys), // Stocke sous forme de JSON
-      userId: user.id
+      userId: authUser.id
     })
 
     return response.created({ message: 'Abonnement enregistré !', subscription })
@@ -36,17 +42,7 @@ export default class NotificationController {
         .preload('user');
 
       // S'il n'y a pas d'utilisateurs abonnés, ne rien faire
-      if (userChannels.length === 0) {
-        console.log('Aucun utilisateur abonné à ce canal.');
-        return;
-      }
-
-      // Configure les clés VAPID pour web-push
-      webPush.setVapidDetails(
-        `mailto:${env.get('VAPID_EMAIL')}`,
-        env.get('VAPID_PUBLIC_KEY'),
-        env.get('VAPID_PRIVATE_KEY')
-      );
+      if (!userChannels.length) return console.log('Aucun utilisateur abonné à ce canal.');
 
       // Définir les URLs
       const channelUrl = `${env.get('FRONTEND_URL')}/channel/${channelId}`;
@@ -64,10 +60,7 @@ export default class NotificationController {
             primaryKey: Date.now(),
             url: channelUrl, // L'URL du channel
             onActionClick: {
-              default: {
-                operation: "openWindow",
-                url: channelUrl,
-              },
+              default: { operation: "openWindow", url: channelUrl },
             },
           },
         },
