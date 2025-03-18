@@ -26,7 +26,7 @@ export default class NotificationController {
     // Crée un nouvel abonnement
     const subscription = await Subscription.create({
       endpoint,
-      keys: JSON.stringify(keys), // Stocke sous forme de JSON
+      keys: JSON.stringify(keys),
       userId: authUser.id
     })
 
@@ -41,7 +41,6 @@ export default class NotificationController {
         .whereNot('userId', author.id) // Exclure l'utilisateur qui envoie le message
         .preload('user');
 
-      // S'il n'y a pas d'utilisateurs abonnés, ne rien faire
       if (!userChannels.length) return console.log('Aucun utilisateur abonné à ce canal.');
 
       // Définir les URLs
@@ -67,32 +66,21 @@ export default class NotificationController {
       };
 
       // Envoi de notification à chaque utilisateur du canal
-      for (const userChannel of userChannels) {
-        const user = userChannel.user;
+      for (const { user } of userChannels) {
+        const subscriptions = await Subscription.query().where('userId', user.id);
+        if (!subscriptions.length) continue;
 
-        // Récupérer les abonnements de l'utilisateur
-        const subscriptions = await Subscription.query()
-          .where('userId', user.id); // Trouver tous les abonnements pour cet utilisateur
-
-        // Si l'utilisateur n'a pas d'abonnement, ignorer
-        if (subscriptions.length === 0) {
-          continue;
-        }
-
-        // Envoi de notification à chaque abonnement
-        for (const subscription of subscriptions) {
-          const keys = typeof subscription.keys === 'string' ? JSON.parse(subscription.keys) : subscription.keys;
-
+        for (const { keys, endpoint } of subscriptions) {
           const pushSubscription: PushSubscription = {
-            endpoint: subscription.endpoint,
-            keys: keys,
+            endpoint,
+            keys: typeof keys === 'string' ? JSON.parse(keys) : keys,
           };
 
           try {
             await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
-            console.log('Notification envoyée à', subscription.endpoint);
+            console.log('Notification envoyée à', endpoint);
           } catch (err) {
-            console.error('Erreur lors de l\'envoi de la notification à l\'endpoint:', subscription.endpoint, err);
+            console.error('Erreur lors de l\'envoi de la notification à l\'endpoint:', endpoint, err);
           }
         }
       }
